@@ -72,6 +72,7 @@ PubSubClient mqttclient(client);
 const byte MPI = 1;
 const byte PCM = 0;
 const byte PIP = 2;
+byte crc = 0; // Default CRC is off. 
 byte inverterType = MPI; //And defaults in case...
 String topic = "solar/";  //Default first part of topic. We will add device ID in setup
 String st = "";
@@ -99,10 +100,15 @@ void setup()
   if (String(_settings._deviceType) == "MPI") {
     inverterType = MPI; }
   else if (String(_settings._deviceType) == "PIP"){
-    inverterType = PIP; } 
+    inverterType = PIP;  
+    crc = 1; // Enable CRC
+  }
   else {
      inverterType = PCM; 
+     crc = 1;  //Enable CRC
   }
+
+ 
   
   //dev = _settings._deviceName.c_str();
   topic = topic + String(_settings._deviceName.c_str());
@@ -285,16 +291,63 @@ bool sendtoMQTT() {
 
      
   }
-    /*if (inverterType == PIP) { //PIP
+   if (inverterType == PIP) { //PIP
    
+     mqttclient.publish((String(topic) + String("/GridV")).c_str(), String(_qpigsMessage.GridV).c_str());
+     mqttclient.publish((String(topic) + String("/GridF")).c_str(), String(_qpigsMessage.GridF).c_str());
+     mqttclient.publish((String(topic) + String("/AcV")).c_str(), String(_qpigsMessage.AcV).c_str());
+     mqttclient.publish((String(topic) + String("/AcF")).c_str(), String(_qpigsMessage.AcF).c_str());
+     mqttclient.publish((String(topic) + String("/AcVA")).c_str(), String(_qpigsMessage.AcVA).c_str());
+     mqttclient.publish((String(topic) + String("/AcW")).c_str(), String(_qpigsMessage.AcW).c_str());
+     mqttclient.publish((String(topic) + String("/Load")).c_str(), String(_qpigsMessage.Load).c_str());
+     //mqttclient.publish((String(topic) + String("/BusV")).c_str(), String(_qpigsMessage.BusV).c_str());
+     mqttclient.publish((String(topic) + String("/BattV")).c_str(), String(_qpigsMessage.BattV).c_str());
+     mqttclient.publish((String(topic) + String("/ChgeA")).c_str(), String(_qpigsMessage.ChgeA).c_str());
+     mqttclient.publish((String(topic) + String("/BattC")).c_str(), String(_qpigsMessage.BattC).c_str());
+     mqttclient.publish((String(topic) + String("/Temp")).c_str(), String(_qpigsMessage.Temp).c_str());
+     mqttclient.publish((String(topic) + String("/PVbattA")).c_str(), String(_qpigsMessage.PVbattA).c_str());
+     mqttclient.publish((String(topic) + String("/PVV")).c_str(), String(_qpigsMessage.PVV).c_str());
+     //mqttclient.publish((String(topic) + String("/BattSCC")).c_str(), String(_qpigsMessage.BattSCC).c_str());
+     mqttclient.publish((String(topic) + String("/BattDisA")).c_str(), String(_qpigsMessage.BattDisA).c_str());
+     mqttclient.publish((String(topic) + String("/Stat")).c_str(), String(_qpigsMessage.Stat).c_str());
+     //mqttclient.publish((String(topic) + String("/BattOffs")).c_str(), String(_qpigsMessage.BattOffs).c_str());
+     //mqttclient.publish((String(topic) + String("/Eeprom")).c_str(), String(_qpigsMessage.Eeprom).c_str());
+     mqttclient.publish((String(topic) + String("/PVchW")).c_str(), String(_qpigsMessage.PVchW).c_str());
+     //mqttclient.publish((String(topic) + String("/b10")).c_str(), String(_qpigsMessage.b10).c_str());
+     //mqttclient.publish((String(topic) + String("/b9")).c_str(), String(_qpigsMessage.b9).c_str());
+     //mqttclient.publish((String(topic) + String("/b8")).c_str(), String(_qpigsMessage.b8).c_str());
+     //mqttclient.publish((String(topic) + String("/reserved")).c_str(), String(_qpigsMessage.reserved).c_str());
+
     doc.clear();
-    doc["INFO"] =  "This one is not done...";
+    doc["GridV"] =  _qpigsMessage.GridV;
+    doc["GridF"] = _qpigsMessage.GridF;
+    doc["AcV"] =  _qpigsMessage.AcV;
+    doc["AcF"] =_qpigsMessage.AcF;
+    doc["AcVA"] = _qpigsMessage.AcVA;
+    doc["AcW"] = _qpigsMessage.AcW;
+    doc["Load"] = _qpigsMessage.Load;
+    //doc["BusV"] = _qpigsMessage.BusV;
+    doc["BattV"] = _qpigsMessage.BattV;
+    doc["ChgeA"] = _qpigsMessage.ChgeA;
+    doc["BattC"] = _qpigsMessage.BattC;
+    doc["Temp"] = _qpigsMessage.Temp;
+    doc["PVbattA"] = _qpigsMessage.PVbattA;
+    doc["PVV"] = _qpigsMessage.PVV;
+   //doc["BattSCC"] = _qpigsMessage.BattSCC;
+    doc["BattDisA"] = _qpigsMessage.BattDisA;
+    doc["Stat"] = _qpigsMessage.Stat;
+    //doc["BattOffs"] = _qpigsMessage.BattOffs;
+    //doc["Eeprom"] = _qpigsMessage.Eeprom;
+    doc["PVchW"] = _qpigsMessage.PVchW;
+    //doc["b10"] = _qpigsMessage.b10;
+    //doc["b9"] = _qpigsMessage.b9;
+    //doc["b8"] = _qpigsMessage.b8;
+    //doc["reserved"] = _qpigsMessage.reserved;
     st = "";
     serializeJson(doc,st);
     mqttclient.publish((String(topic) + String("/status")).c_str(), st.c_str() );
-
-     
-  }*/
+  }
+  
   if (inverterType == MPI) { //IF MPI
     mqttclient.publish((String(topic) + String("/solar1w")).c_str(), String(_P003GSMessage.solarInputV1*_P003GSMessage.solarInputA1).c_str());
     mqttclient.publish((String(topic) + String("/solar2w")).c_str(), String(_P003GSMessage.solarInputV2*_P003GSMessage.solarInputA2).c_str());

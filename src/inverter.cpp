@@ -9,8 +9,9 @@ extern TickCounter _tickCounter;
 extern Settings _settings;
 extern byte inverterType; 
 extern byte MPI;
-extern byte PCM60x;
+extern byte PCM;
 extern byte PIP;
+extern byte crc;
 extern int Led_Red;
 extern int Led_Green;
 
@@ -243,14 +244,43 @@ bool onPIGS()
     return false;
 
   int index = 1; //after the starting '('
-  _qpigsMessage.rxTimeSec = _tickCounter.getSeconds();
-  _qpigsMessage.solarV = (short)getNextFloat(_commandBuffer, index);
-  _qpigsMessage.battV = getNextFloat(_commandBuffer, index);
-  _qpigsMessage.battChargeA = getNextFloat(_commandBuffer, index);
-  _qpigsMessage.solarA = getNextFloat(_commandBuffer, index);
-  _qpigsMessage.solar2A = getNextFloat(_commandBuffer, index);
-  _qpigsMessage.wattage = getNextFloat(_commandBuffer, index);
-  
+
+// PCM and PIP uses same message so lets threat them differently. 
+  if (inverterType == 0) { //PCM
+    _qpigsMessage.rxTimeSec = _tickCounter.getSeconds();
+    _qpigsMessage.solarV = (short)getNextFloat(_commandBuffer, index);
+    _qpigsMessage.battV = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.battChargeA = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.solarA = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.solar2A = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.wattage = getNextFloat(_commandBuffer, index);
+  }
+  if (inverterType == 2) { //PIP
+    _qpigsMessage.GridV = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.GridF = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.AcV = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.AcF = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.AcVA = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.AcW = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.Load = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.BusV = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.BattV = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.ChgeA = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.BattC = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.Temp = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.PVbattA = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.PVV = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.BattSCC = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.BattDisA = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.Stat = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.BattOffs = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.Eeprom = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.PVchW = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.b10 = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.b9 = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.b8 = getNextFloat(_commandBuffer, index);
+    _qpigsMessage.reserved = getNextFloat(_commandBuffer, index);
+  }
   return true;
 }
 
@@ -392,7 +422,8 @@ void onInverterCommand()
     unsigned short calculatedCrc = cal_crc_half((byte*)_commandBuffer.c_str(), _commandBuffer.length() - 2);
     unsigned short recievedCrc = ((unsigned short)_commandBuffer[_commandBuffer.length()-2] << 8) | 
                                                   _commandBuffer[_commandBuffer.length()-1];
-    if (!inverterType) {
+
+    if (crc) {
       Serial1.print(F(" Calc: "));
       Serial1.print(calculatedCrc, HEX);
       Serial1.print(F(" Rx: "));
@@ -407,7 +438,7 @@ void onInverterCommand()
     if (calculatedCrc == recievedCrc)
     {
         //MPI
-        digitalWrite(Led_Red, LOW);  //If we got a valid command show that on the led
+        digitalWrite(Led_Red, LOW);  //If we got a valid command disable red led
         if (_lastRequestedCommand == "P003GS") 
         {
           onP003GS();
@@ -426,10 +457,10 @@ void onInverterCommand()
           _allMessagesUpdated = true;
         }
 
-      // Below for PCM
-      else if (_lastRequestedCommand == "QPIGS" && !inverterType) 
+      // Below for PCM & PIP
+      else if (_lastRequestedCommand == "QPIGS" && (crc)) 
       {
-        digitalWrite(Led_Red, LOW); //IF we got a valid command show that on the red led
+        digitalWrite(Led_Red, LOW); //IF we got a valid command disable red led
         if (onPIGS()) {
           _allMessagesUpdated = true;
         }
@@ -505,8 +536,8 @@ void serviceInverter()
     if (inverterType) { Serial.print("^"); Serial1.print("^");}  //If MPI then prechar is needed
     Serial.print(_nextCommandNeeded);
     Serial1.println(_nextCommandNeeded);
-    if (!inverterType) Serial.print((char)((crc >> 8) & 0xFF)); //ONLY CRC fo PCM/PIP
-    if (!inverterType) Serial.print((char)((crc >> 0) & 0xFF)); //ONLY CRC fo PCM/PIP
+    if (crc) Serial.print((char)((crc >> 8) & 0xFF)); //ONLY CRC fo PCM/PIP
+    if (crc) Serial.print((char)((crc >> 0) & 0xFF)); //ONLY CRC fo PCM/PIP
     Serial.print("\r");
    
    if (_setCommand.length()) { _nextCommandNeeded = ""; _setCommand = ""; }  // If it was RAW command reset it.
