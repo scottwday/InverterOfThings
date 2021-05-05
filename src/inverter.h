@@ -80,37 +80,12 @@ struct QpigsMessage
 {
   unsigned long rxTimeSec;
   //087.6 51.18 08.81 04.71 04.10 0450 +034 00.05 -030 0000 11000000O⸮'
-  //float solarV;
-  //float battV;
-  //float battChargeA;
-  //float solarA;
-  //float solar2A;
-  //float wattage;
-  
-  float GridV;
-  float GridF;
-  float AcV;
-  float AcF;
-  float AcVA;
-  float AcW;
-  float Load;
-  float BusV;
-  float BattV;
-  float ChgeA;
-  float BattC;
-  float Temp;
-  float PVbattA;
-  float PVV;
-  float BattSCC;
-  float BattDisA;
-  float Stat;
-  float BattOffs;
-  float Eeprom;
-  float PVchW;
-  float b10;
-  float b9;
-  float b8;
-  float reserved;
+  float solarV;
+  float battV;
+  float battChargeA;
+  float solarA;
+  float solar2A;
+  float wattage;
 }; 
 
 struct QmodMessage
