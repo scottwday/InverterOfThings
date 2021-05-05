@@ -10,6 +10,7 @@ extern Settings _settings;
 extern byte inverterType; 
 extern byte MPI;
 extern byte PCM60x;
+extern byte EASUN_SMP;
 extern byte PIP;
 extern int Led_Red;
 extern int Led_Green;
@@ -243,14 +244,38 @@ bool onPIGS()
     return false;
 
   int index = 1; //after the starting '('
-  _qpigsMessage.rxTimeSec = _tickCounter.getSeconds();
-  _qpigsMessage.solarV = (short)getNextFloat(_commandBuffer, index);
-  _qpigsMessage.battV = getNextFloat(_commandBuffer, index);
-  _qpigsMessage.battChargeA = getNextFloat(_commandBuffer, index);
-  _qpigsMessage.solarA = getNextFloat(_commandBuffer, index);
-  _qpigsMessage.solar2A = getNextFloat(_commandBuffer, index);
-  _qpigsMessage.wattage = getNextFloat(_commandBuffer, index);
-  
+  //_qpigsMessage.rxTimeSec = _tickCounter.getSeconds();
+  // _qpigsMessage.solarV = (short)getNextFloat(_commandBuffer, index);
+  //_qpigsMessage.battV = getNextFloat(_commandBuffer, index);
+  //_qpigsMessage.battChargeA = getNextFloat(_commandBuffer, index);
+  //_qpigsMessage.solarA = getNextFloat(_commandBuffer, index);
+  //_qpigsMessage.solar2A = getNextFloat(_commandBuffer, index);
+  //_qpigsMessage.wattage = getNextFloat(_commandBuffer, index);
+
+  _qpigsMessage.GridV = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.GridF = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.AcV = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.AcF = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.AcVA = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.AcW = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.Load = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.BusV = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.BattV = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.ChgeA = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.BattC = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.Temp = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.PVbattA = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.PVV = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.BattSCC = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.BattDisA = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.Stat = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.BattOffs = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.Eeprom = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.PVchW = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.b10 = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.b9 = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.b8 = getNextFloat(_commandBuffer, index);
+  _qpigsMessage.reserved = getNextFloat(_commandBuffer, index);
   return true;
 }
 
@@ -426,7 +451,7 @@ void onInverterCommand()
           _allMessagesUpdated = true;
         }
 
-      // Below for PCM
+      // Below for PCM and EASUN_SMP
       else if (_lastRequestedCommand == "QPIGS" && !inverterType) 
       {
         digitalWrite(Led_Red, LOW); //IF we got a valid command show that on the red led
@@ -435,7 +460,6 @@ void onInverterCommand()
         }
         _nextCommandNeeded = "";
       }
-
       
     //Below for PIP
       else if (_lastRequestedCommand == "QMOD") 
