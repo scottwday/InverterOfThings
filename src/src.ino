@@ -243,6 +243,7 @@ bool sendtoMQTT() {
         mqttclient.subscribe((topic + String("/code")).c_str());
       } else {
         Serial1.println(F("CANT CONNECT TO MQTT"));
+        Serial1.println(_settings._mqttUser.c_str());
         digitalWrite(Led_Green, LOW); 
         //delay(50);
         return false; // Exit if we couldnt connect to MQTT brooker
